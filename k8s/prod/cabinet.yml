@@ -1,0 +1,77 @@
+service_name: &service_name ffin-non-resident-packer-cabinet
+service_port: &service_port 80
+domain: &domain non-resident.bankffin.kz
+secret_tls_name: &secret_tls_name ffin-star-tls
+
+env:
+  KEY: value
+
+resources:
+  limits:
+    cpu: 0.1
+    memory: 128Mi
+  requests:
+    cpu: 0.05
+    memory: 64Mi
+
+replicaCount: 1
+
+rollingUpdate:
+  maxSurge: 1
+  maxUnavailable: 0
+
+nameOverride: *service_name
+fullnameOverride: *service_name
+
+ingress:
+  enabled: true
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: '600'
+    nginx.ingress.kubernetes.io/proxy-read-timeout: '600'
+    nginx.ingress.kubernetes.io/proxy-send-timeout: '600'
+  hosts:
+    - host: *domain
+      paths:
+        - /
+  tls:
+    - secretName: *secret_tls_name
+      hosts:
+        - *domain
+
+service:
+  type: ClusterIP
+  port: *service_port
+  targetPort: *service_port
+
+ports:
+  - name: https
+    port: *service_port
+    targetPort: *service_port
+    protocol: TCP
+
+extraVolumeMounts: []
+
+extraVolumes: []
+
+livenessProbe:
+  tcpSocket:
+    port: *service_port
+  failureThreshold: 50
+  initialDelaySeconds: 30
+  periodSeconds: 5
+  successThreshold: 1
+  timeoutSeconds: 1
+readinessProbe:
+  tcpSocket:
+    port: *service_port
+  failureThreshold: 50
+  initialDelaySeconds: 5
+  periodSeconds: 5
+  successThreshold: 1
+  timeoutSeconds: 1
+
+imagePullSecrets:
+  - name: ffregistrykey
+
+cronjobs: []

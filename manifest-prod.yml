@@ -1,0 +1,19 @@
+namespaces:
+  master:
+
+preconfiguredHelmRepos:
+  - projects
+
+appsTemplates:
+  default-chart: &default-chart
+    namespace: master
+    enabled: true
+    chart: 'projects/default-chart'
+    version: '0.2.6'
+
+apps:
+  ffin-non-resident-packer-cabinet:
+    <<: *default-chart
+    valuesFile: 'k8s/ENVIRONMENT/ffin-non-resident-packer-cabinet.yml'
+    set:
+      image.name: 'IMAGE_TO_REPLACE:TAG'
